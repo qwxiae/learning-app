@@ -1,0 +1,15 @@
+[project]
+name = "education-system"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "celery>=5.6.2",
+    "django-extensions>=4.1",
+    "django-redis>=6.0.0",
+    "djangorestframework>=3.16.1",
+    "ipython>=9.10.0",
+    "pillow>=12.1.1",
+    "redis>=7.2.1",
+]

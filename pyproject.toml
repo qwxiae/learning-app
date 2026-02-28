@@ -11,5 +11,6 @@ dependencies = [
     "djangorestframework>=3.16.1",
     "ipython>=9.10.0",
     "pillow>=12.1.1",
+    "python-decouple>=3.8",
     "redis>=7.2.1",
 ]

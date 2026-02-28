@@ -6,6 +6,12 @@ User = get_user_model()
 class EmailBackend(ModelBackend):
     """We owerite the default username authentication"""
     def authenticate(self, request, email=None, password=None, **kwargs):
+        if email is None:
+            email = kwargs.get("username")
+
+        if email is None or password is None:
+            return None
+        
         try:
             user = User.objects.get(email=email)
         

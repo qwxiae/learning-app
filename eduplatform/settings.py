@@ -11,16 +11,17 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z*tu^(@*(#svecn$fz*oi027t8j#dfex^o^0*gamq)p4h%ew0s'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -32,6 +33,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "apps.users",
+    # "apps.courses",
+    # "apps.lessons",
+    # "apps.submissions",
+    # "apps.analytics",
+    # "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -49,7 +56,7 @@ ROOT_URLCONF = 'eduplatform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -96,13 +103,13 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+# TODO: why does it look different form MEDIA_URL
 STATIC_URL = 'static/'
 
-# AUTH_USER_MODEL = "users.User"
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
-# AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
+AUTH_USER_MODEL = "users.User"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
 
 # SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 # SESSION_CACHE_ALIAS = "default"
@@ -114,3 +121,5 @@ STATIC_URL = 'static/'
 #         "LOCATION": "redis://127.0.0.1:6379/1"
 #     }
 # }
+
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')

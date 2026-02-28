@@ -1,0 +1,9 @@
+This is where your async Celery logic lives. Isolating it makes 
+the architecture diagram in your diploma much cleaner — you can
+ draw a clear boundary showing HTTP request → view → task queue
+  → worker → result.
+
+checkers/ inside submissions is a small strategy pattern — base.py
+ defines the interface, quiz/code are concrete implementations.
+  Good to mention in your diploma as a design decision since
+   it makes adding new step types easy.

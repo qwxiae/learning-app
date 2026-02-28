@@ -25,6 +25,10 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     # Remove username - logging is done via email
     username = None
+    # Remove names - they live on Profile
+    first_name = None
+    last_name = None
+
     email = models.EmailField(unique=True)
 
     USERNAME_FIELD = "email"
@@ -36,7 +40,7 @@ class User(AbstractUser):
         db_table = "users_user"
 
     def __str__(self):
-        self.email
+        return self.email or "No email"
 
 
 class Profile(models.Model):
@@ -46,10 +50,27 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         related_name="profile"
     )
-    avatar = models.ImageField(
-        upload_to="/media",
+    first_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+    last_name = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+    username = models.CharField(
+        max_length=50, 
+        unique=True,
         null=True,
-        blank=True
+        blank=True,
+        default=""
+    )
+    avatar = models.ImageField(
+        upload_to="avatars/",
+        null=True,
+        blank=True,
     )
     phone = models.CharField(
         max_length=20,
@@ -116,10 +137,10 @@ class OAuthConnection(models.Model):
     connected_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "users_oauthconnecction"
+        db_table = "users_oauthconnection"
         unique_together = [("user", "provider")]
 
     def __str__(self):
-        return f"{self.user.email} via self.provider"
+        return f"{self.user.email} via {self.provider}"
     
 

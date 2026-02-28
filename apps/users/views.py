@@ -1,4 +1,4 @@
 from django.shortcuts import render
+from .forms import LoginForm, ProfileForm, RegisterForm
 
-# Create your views here.
-# REGISTER LOGIN PROFILE CRUD OAUTH
+

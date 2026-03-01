@@ -1,10 +1,12 @@
 # Byte-compiled / optimized / DLL files
+htmlcov
 media/
 checklists/
 __pycache__/
 *.py[codz]
 *$py.class
 
+.*
 # C extensions
 *.so
 

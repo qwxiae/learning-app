@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Profile, Role, UserRole, OAuthConnection
+from .models import User, Profile, Role, UserRole
 
 class UserRoleInline(admin.TabularInline):
     model = UserRole
@@ -49,8 +49,8 @@ class ProfileAdmin(admin.ModelAdmin):
     )
     search_fields = ["user", "user__email"]
 
-@admin.register(OAuthConnection)
-class OAuthConnectionAdmin(admin.ModelAdmin):
-    list_display = ["user", "provider", "provider_email", "connected_at"]
-    search_fields = ["user__email", "provider_email"]
-    list_filter = ["provider"]
+# @admin.register(OAuthConnection)
+# class OAuthConnectionAdmin(admin.ModelAdmin):
+#     list_display = ["user", "provider", "provider_email", "connected_at"]
+#     search_fields = ["user__email", "provider_email"]
+#     list_filter = ["provider"]

@@ -123,3 +123,4 @@ AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
 # }
 
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+LOGIN_URL = "login"

@@ -20,7 +20,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
             user = form.save()
 
             login(request, user)
-            return redirect('users:profile')
+            return redirect('courses:home')
 
     return render(request, "users/register.html", {"form": form})
 
@@ -41,12 +41,17 @@ def login_view(request: HttpRequest) -> HttpResponse:
             
             if user is not None:
                 login(request, user)
-                return redirect('users:profile')
+                next_url = request.POST.get("next") or request.GET.get("next") or "courses:home"
+                return redirect(next_url)
             else:
                 # Make sure error is present, so form can show it.
                 form.add_error(None, "Invalid email or password")
 
-    return render(request, "users/login.html", {"form": form})
+    return render(request, "users/login.html", {
+        "form": form,
+        "next": request.GET.get("next", "")
+        }
+    )
 
 
 def public_profile_view(request: HttpRequest, user_id: int) -> HttpResponse:
@@ -64,15 +69,15 @@ def public_profile_view(request: HttpRequest, user_id: int) -> HttpResponse:
     }
 
     return JsonResponse(data)
-    # user = get_object_or_404(User, pk=user_id)
     # return render(request, "users/public_profile.html", {"profile_user": user})
+    # user = get_object_or_404(User, pk=user_id)
 
 
 def logout_view(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         logout(request)
-
-    return redirect('users:login')
+    next_url = request.GET.get("next") or request.META.get("HTTP_REFERER") or "courses:home"
+    return redirect(next_url)
 
 
 @login_required

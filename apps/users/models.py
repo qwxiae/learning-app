@@ -35,6 +35,23 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+
+    def has_role(self, role_name: str) -> bool:
+        return self.user_roles.filter(role__name=role_name).exists()
+    
+    # Properties are needed since methods cannot be used in templates
+    @property
+    def is_student(self) -> bool:
+        return self.has_role("student")
+    
+    @property
+    def is_instructor(self) -> bool:
+        return self.has_role("instructor")
+    
+    @property
+    def is_moderator(self) -> bool:
+        return self.has_role("moderator")
+
     class Meta:
         db_table = "users_user"
 

@@ -1,4 +1,7 @@
 from django.shortcuts import render
 
-# Create your views here.
-# catalog course detail enroll/unerrol
+def home_view(request):
+    return render(request, "courses/home.html")
+
+def about_view(request):
+    return render(request, "courses/about.html")

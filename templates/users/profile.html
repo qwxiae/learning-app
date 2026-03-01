@@ -1,0 +1,10 @@
+<!-- templates/users/register.html -->
+<!DOCTYPE html>
+<html>
+<body>
+<form method="POST">
+  {% csrf_token %}
+  {{ form.as_p }}
+</form>
+</body>
+</html>

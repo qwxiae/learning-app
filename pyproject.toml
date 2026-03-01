@@ -1,3 +1,23 @@
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+
+[tool.mypy.plugins.django-stubs]
+django_settings_module = "eduplatform.settings"
+
+[tool.coverage.run]
+source = ["apps"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/admin.py",
+    "manage.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+
 [project]
 name = "education-system"
 version = "0.1.0"

@@ -45,13 +45,14 @@ class Course(models.Model):
 
     title = models.CharField(max_length=255, blank=False)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
+    is_published = models.BooleanField(default=False)
+    
     # Textfields dont need max length
     description = models.TextField(blank=False, default="")
 
     promo_content = models.TextField(default="", blank=True)
     cover = models.ImageField(upload_to="covers/", null=True, blank=True)
 
-    is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -1,3 +1,113 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.utils.text import slugify
 
-# Create your models here.
+User = get_user_model()
+
+
+class Category(models.Model):
+    """ Categories that group courses """
+    name = models.CharField(max_length=100, unique=True, blank=False)
+    description = models.TextField(max_length=500, blank=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = "courses_category"
+        verbose_name_plural = "categories"
+
+    def __str__(self):
+        return f"Category({self.name})"
+
+
+class Course(models.Model):
+    """ Course that stores modules """
+    # Keep the course even if author is gone
+    author = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="courses"
+    )
+    # Author can assign another one.
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="courses"
+    )
+
+    title = models.CharField(max_length=255, blank=False)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    # Textfields dont need max length
+    description = models.TextField(blank=False, default="")
+
+    promo_content = models.TextField(default="", blank=True)
+    cover = models.ImageField(upload_to="covers/", null=True, blank=True)
+
+    is_published = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = "courses_course"
+
+    def __str__(self):
+        return f"Course({self.title})"
+    
+
+class Module(models.Model):
+    """
+    Module that lessons are connected to. Not used in URL. 
+    Only used to group lessons in side-bar, ceration form, and
+    analytics 
+    """
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="modules"
+    )
+    title = models.CharField(max_length=255, blank=False)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        db_table = "courses_module"
+        unique_together = [("course", "order")]
+        # Always return in order by default
+        ordering = ["order"]
+
+    def __str__(self):
+        return f"Module(Course({self.course.title}), {self.title})"
+    
+class Enrollment(models.Model):
+    """ Connect user to course """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="enrollments"
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="enrollments"
+    )
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    last_active_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "courses_enrollment"
+        unique_together = [("user", "course")]
+
+    def __str__(self):
+        return f"Enrollment(User({self.user.email}), Course({self.course.title}))"

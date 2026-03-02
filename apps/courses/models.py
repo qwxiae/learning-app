@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
+import uuid
 
 User = get_user_model()
 
@@ -58,7 +59,11 @@ class Course(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            base_slug = slugify(self.title)
+            if Course.objects.filter(slug=base_slug).exists():
+                self.slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+            else:
+                self.slug = base_slug
         super().save(*args, **kwargs)
 
     class Meta:

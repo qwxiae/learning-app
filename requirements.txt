@@ -17,7 +17,6 @@ django-stubs==5.2.9
 django-stubs-ext==5.2.9
 djangorestframework==3.16.1
 executing==2.2.1
-Faker==40.5.1
 ipython==9.10.0
 ipython_pygments_lexers==1.1.1
 jedi==0.19.2

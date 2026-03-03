@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 import uuid
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -18,6 +19,9 @@ class Category(models.Model):
         
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse("courses:category_detail", kwargs={"slug": self.slug})
+    
     class Meta:
         db_table = "courses_category"
         verbose_name_plural = "categories"
@@ -57,6 +61,9 @@ class Course(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_absolute_url(self):
+        return reverse("courses:course_detail", kwargs={"slug": self.slug})
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             base_slug = slugify(self.title)

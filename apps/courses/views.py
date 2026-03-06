@@ -50,12 +50,12 @@ def course_detail_view(request, slug: str):
         is_published=True
     )
     
-    # modules = (
-    #     course.modules
-    #     .prefetch_related("lessons")
-    #     .annotate(lesson_count=Count("lessons"))
-    #     .order_by("order")
-    # )
+    modules = (
+        course.modules
+        .prefetch_related("lessons")
+        .annotate(lesson_count=Count("lessons"))
+        .order_by("order")
+    )
 
     is_enrolled = False
     if request.user.is_authenticated:
@@ -66,7 +66,7 @@ def course_detail_view(request, slug: str):
 
     return render(request, "courses/course_detail.html", {
         "course": course,
-        # "modules": modules,
+        "modules": modules,
         "is_enrolled": is_enrolled
     })
 

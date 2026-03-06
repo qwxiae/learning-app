@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'django_extensions',
     "apps.users",
     "apps.courses",
-    # "apps.lessons",
+    "apps.lessons",
     # "apps.submissions",
     # "apps.analytics",
     # "apps.notifications",
@@ -94,7 +94,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-# TODO: why does it look different form MEDIA_URL
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"

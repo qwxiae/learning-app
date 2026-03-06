@@ -3,9 +3,9 @@ from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 import uuid
 from django.urls import reverse
+from django.db.models import Count
 
 User = get_user_model()
-
 
 class Category(models.Model):
     """ Categories that group courses """
@@ -117,7 +117,24 @@ class Enrollment(models.Model):
     )
     enrolled_at = models.DateTimeField(auto_now_add=True)
     last_active_at = models.DateTimeField(auto_now=True)
+    progress = models.PositiveSmallIntegerField(default=0)
 
+    @property
+    def progress_percentage(self):
+        """ 
+        Based on lesson count as percentage can be derived 
+        from lesson count but not vice versa
+        """
+        result = self.course.modules.aggregate(
+            total=Count("lessons")
+        )
+
+        total = result["total"] or 0
+        if total == 0:
+            return 0
+
+        return round(self.progress / total * 100)
+    
     class Meta:
         db_table = "courses_enrollment"
         unique_together = [("user", "course")]

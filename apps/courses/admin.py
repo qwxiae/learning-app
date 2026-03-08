@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import Category, Course, Module, Enrollment
+from django.db import models 
+from tinymce.widgets import TinyMCE
 
 class ModuleInline(admin.TabularInline):
     """ 
@@ -31,7 +33,9 @@ class CourseAdmin(admin.ModelAdmin):
         ("Content", {"fields": ("description", "promo_content", "cover")}),
         ("Dates", {"fields": ("created_at", "updated_at")}),
     )
-
+    formfield_overrides = {
+        models.TextField: {"widget": TinyMCE()}
+    }
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):

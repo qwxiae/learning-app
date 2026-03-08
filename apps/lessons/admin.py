@@ -5,7 +5,8 @@ from . models import (
     ChoiceStep, ChoiceOption,
     ProgrammingStep, TestCase,
 ) 
-
+from tinymce.widgets import TinyMCE
+from django.db import models 
 
 class StepInline(admin.TabularInline):
     model = Step
@@ -41,6 +42,9 @@ class TheoryStepAdmin(admin.ModelAdmin):
     list_display = ["title", "lesson", "order"]
     search_fields = ["title"]
     fields = ["lesson", "title", "order", "html_content"]
+    formfield_overrides = {
+        models.TextField: {"widget": TinyMCE()}
+    }
 
 @admin.register(ChoiceStep)
 class ChoiceStepAdmin(admin.ModelAdmin):

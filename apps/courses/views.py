@@ -3,7 +3,7 @@ from .models import Category, Course, Enrollment
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Prefetch
+from django.db.models import Count
 
 User = get_user_model()
 

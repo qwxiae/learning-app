@@ -60,7 +60,8 @@ def public_profile_view(request: HttpRequest, username: str) -> HttpResponse:
     taught_courses = Course.objects.filter(
         author=user,
         is_published=True
-    )
+    ).select_related('category')
+    
     return render(request, "users/public_profile.html", {
         "profile_user": user,
         "taught_courses": taught_courses,
@@ -96,10 +97,10 @@ def profile_edit_view(request: HttpRequest) -> HttpResponse:
             profile_form.save()
             user_form.save()
             
-            return redirect('users:profile')
-        
-    user_form = UserForm(instance=request.user) 
-    profile_form  = ProfileForm(instance=request.user.profile)
+            return redirect('users:public_profile', username=request.user.username)
+    else:
+        user_form = UserForm(instance=request.user) 
+        profile_form  = ProfileForm(instance=request.user.profile)
 
     return render(request, "users/profile_edit.html", {
         "user_form": user_form,

@@ -1,18 +1,19 @@
 from django.test import TestCase, Client
 from .models import User, Profile, Role, UserRole
 from django.urls import reverse
+from django.db.models import ProtectedError
 
-
-class UserTestCase(TestCase):
+class BaseTestCase(TestCase):
     def setUp(self):
         self.client = Client()
-        Role.objects.create(name="student")
+        self.role = Role.objects.create(name="student")
         self.user = User.objects.create_user(
             username="test_user",
             email="test@test.com",
             password="Xk9#mP2$qL5nR8@w123",
         )
-    
+
+class UserTestCase(BaseTestCase):
     def test_create_user(self):
         user = User.objects.get(email="test@test.com")
         self.assertEqual(user.email, "test@test.com")
@@ -25,6 +26,7 @@ class UserTestCase(TestCase):
     def test_register_user(self):
         response = self.client.post(reverse("users:register"), {
             "email": "test2@test.com",
+            "username": "test_user2",
             "password1": "Xk9#mP2$qL5nR8@w123",
             "password2": "Xk9#mP2$qL5nR8@w123",
             }
@@ -77,15 +79,9 @@ class UserTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
 
     
-class ProfileTestCase(TestCase):
+class ProfileTestCase(BaseTestCase):
     def setUp(self):
-        self.client = Client()
-        Role.objects.create(name="student")
-        self.user = User.objects.create_user(
-            username="test_user",
-            email="test@test.com",
-            password="Xk9#mP2$qL5nR8@w123"
-        )
+        super().setUp()
         self.client.login(email="test@test.com", password="Xk9#mP2$qL5nR8@w123")
 
     def test_get_profile_page(self):
@@ -95,52 +91,46 @@ class ProfileTestCase(TestCase):
             password="Xk9#mP2$qL5nR8@w321",
         )
         response = self.client.get(
-            reverse("users:public_profile", kwargs={"user_id": other_user.id})
+            reverse(
+                "users:public_profile",
+                kwargs={"username": other_user.username})
         )
         self.assertEqual(response.status_code, 200)
 
     def test_get_my_profile_page(self):
         response = self.client.get(reverse("users:profile"))
-        self.assertEqual(response.status_code, 200)
+        # redirects to public profile
+        self.assertEqual(response.status_code, 302)
 
     def test_update_my_profile_page(self):
         response = self.client.post(reverse("users:profile_edit"), {
+            "username": "john4",
             "first_name": "John",
             "last_name": "Doe",
             "bio": "Lorem ipsum...",
             "phone": "123456789",
         })
         self.assertEqual(response.status_code, 302)
-        # TODO: why this
+        # refresh databas
         self.user.profile.refresh_from_db()
         self.assertAlmostEqual(self.user.profile.first_name, "John")
 
 
-class RoleTestCase(TestCase):
-    def setUp(self):
-        self.role = Role.objects.create(name="student")
-
+class RoleTestCase(BaseTestCase):
     def test_create_role(self):
         self.assertEqual(self.role.name, "student")
         self.assertTrue(Role.objects.filter(name="student").exists())
 
     def test_delete_role(self):
-        self.role.delete()
-        self.assertFalse(Role.objects.filter(name="student").exists())
+        with self.assertRaises(ProtectedError):
+            self.role.delete()
 
-class UserRoleTestCase(TestCase):
+class UserRoleTestCase(BaseTestCase):
     def setUp(self):
-        self.role = Role.objects.create(name="student")
-        self.user = User.objects.create_user(
-            username="test_user",
-            email="test@test.com",
-            password="Xk9#mP2$qL5nR8@w123"
-        )
-        # No need to create as Signal has already created it
+        super().setUp()
         self.user_role = UserRole.objects.get(user=self.user, role=self.role)
 
     def test_delete_role_from_userrole(self):
-        from django.db.models import ProtectedError
 
         with self.assertRaises(ProtectedError):
             self.role.delete()

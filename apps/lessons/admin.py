@@ -52,6 +52,9 @@ class ChoiceStepAdmin(admin.ModelAdmin):
     search_fields = ["title"]
     fields = ["title", "lesson", "order", "question_text", "is_multiple"]
     inlines = [ChoiceOptionInline]
+    formfield_overrides = {
+        models.TextField: {"widget": TinyMCE()}
+    }
 
 @admin.register(ProgrammingStep)
 class ProgrammingStepAdmin(admin.ModelAdmin):
@@ -71,3 +74,6 @@ class TextInputStepAdmin(admin.ModelAdmin):
     list_display = ["title", "lesson", "order"]
     search_fields = ["title"]
     fields = ["title", "lesson", "order", "question_text", "answer"]
+    formfield_overrides = {
+        models.TextField: {"widget": TinyMCE()}
+    }

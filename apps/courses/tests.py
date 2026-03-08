@@ -1,101 +1,244 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from .models import Category, Course, Module, Enrollment
+from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.db.utils import IntegrityError
+from apps.users.models import Role,UserRole
 
-class CategoryTestCase(TestCase):
+class BaseTestClass(TestCase):
     def setUp(self):
-        pass
+        self.client = Client()
 
+        self.category = Category.objects.create(name="History")
+        self.role = Role.objects.create(
+            name="instructor"
+        )
+        Role.objects.create(
+            name="student"
+        )
+
+        self.User = get_user_model()
+        # Must use create_user to hash password
+        # login uses hashed passwords if the input it is
+        # treated like a different password
+        self.author = self.User.objects.create_user(
+            username="coursetest",
+            email="test_courses@test.com",
+            password="testingCourses",
+        )
+        self.student = self.User.objects.create_user(
+            username="coursestudent",
+            email="test_student@test.com",
+            password="testingStudent",
+        )
+
+        UserRole.objects.create(
+            user=self.author,
+            role=self.role
+        )
+
+        self.course = Course.objects.create(
+            author=self.author,
+            category=self.category,
+            title="Test Course",
+            is_published=True
+        )
+        self.unpublished = Course.objects.create(
+            author=self.author,
+            category=self.category,
+            title="Unpublished",
+            is_published=False
+    )
+
+class CategoryTestCase(BaseTestClass):
     def test_create_category(self):
-        pass
+        cat = Category.objects.create(name="Philosophy")
+        self.assertEqual(cat.name, "Philosophy")
+        self.assertEqual(cat.slug, "philosophy")
 
     def test_create_duplicate_category(self):
-        pass
+        cat = Category.objects.create(name="Philosophy")
+        self.assertEqual(cat.name, "Philosophy")
 
-    def test_auto_create_slug(self):
-        pass
-
-    def test_get_categories(self):
-        pass
+        # fails because of similar slug
+        with self.assertRaises(IntegrityError):
+            Category.objects.create(name="philosophy") 
 
     def test_get_category(self):
-        pass
+        response = self.client.get(
+            reverse("courses:catalog"),
+            {"category": "history"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["current_category"], "history"
+        )
 
 
-class CourseTestCase(TestCase):
-    def setUp(self):
-        pass
-
-    def test_delete_author_course_stays(self):
-        pass
-
-
-    def test_deleted_category_course_stays(self):
-        pass
-
-    def test_create_course(self):
-        pass
-
-    def test_delete_course(self):
-        """ 
-        Only author can delete course.
-        If course is deleted, then all modules are deleted.
-        """
-        pass
+class CourseTestCase(BaseTestClass):
+    def test_delete_author_and_category_course_stays(self):
+        self.author.delete()
+        self.category.delete()
+        does_course_exist = Course.objects.filter(
+            slug="test-course"
+        )
+        self.assertTrue(does_course_exist)
 
     def test_create_course_with_duplicate_name(self):
-        pass
+        """ 
+        Duplicate name are allowed. 
+        Slugs are different automatically 
+        """
+      
+        course2 = Course.objects.create(
+            author=self.author,
+            category=self.category,
+            title="Test Course",
+            is_published=True
+        )
+        self.assertIsNotNone(course2)
 
-    def test_get_courses_from_category(self):
-        pass
 
     def test_get_courses(self):
-        pass
+        response = self.client.get(reverse("courses:catalog"))
+        self.assertEqual(response.status_code, 200)
 
     def test_get_course(self):
-        pass
-
-    def test_auto_create_slug(self):
-        """Slug is generated from title on creation."""
-        pass
+        response = self.client.get(reverse(
+            "courses:course_detail", 
+            kwargs={"slug": self.course.slug}
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["course"], self.course
+        )
 
     def test_slug_not_updated_on_title_change(self):
         """Changing title does not regenerate slug."""
-        pass
+        prev_slug = self.course.slug
+        Course.objects.filter(
+            slug=prev_slug
+        ).update(title="New title")
 
-class ModuleTestCase(TestCase):
-    def test_create_course_modules(self):
-        pass
+        current_slug = self.course.slug
+        self.assertEqual(prev_slug, current_slug)
+
+class ModuleTestCase(BaseTestClass):
+    def setUp(self):
+        super().setUp()
+        Module.objects.create(
+            course=self.course,
+            title="M1",
+            order=1
+        )
+        Module.objects.create(
+            course=self.course,
+            title="M2",
+            order=2
+        )
 
     def test_get_course_modules(self):
-        pass
+        response = self.client.get(
+            reverse("courses:course_detail", kwargs={
+                "slug": self.course.slug
+            })
+        )
+        # two queries would not be equal as the context query is annotated
+        # when we convert to list, we compare objects and queries
+        # queries can be unreliable because of query methods
+        self.assertEqual(
+            list(response.context["modules"]),
+            list(Module.objects.filter(course=self.course))
+        )
 
     def test_unique_order_per_course(self):
-        """Two modules in same course cannot have same order."""
-        pass
+        with self.assertRaises(IntegrityError):
+            Module.objects.create(
+                course=self.course,
+                title="M2",
+                order=2
+            )
 
     def test_same_order_different_courses(self):
-        """Two modules in different courses can have same order."""
-        pass
+        course2 = Course.objects.create(
+            author=self.author,
+            category=self.category,
+            title="Test Course",
+            is_published=True
+        )
+        module = Module.objects.create(
+            course=course2,
+            title="M2",
+            order=2
+        )
+        self.assertIsNotNone(module)
 
-class EnrollmentTestCase(TestCase):
-    def test_create_enrollment(self):
-        pass
+class EnrollmentTestCase(BaseTestClass):
+    def setUp(self):
+        super().setUp()
+        # most enrollment actions require auth - login once for the whole class
+        logged_in = self.client.login(
+            email="test_student@test.com", 
+            password='testingStudent'
+        )
+        self.assertTrue(logged_in)
 
-    def test_enroll(self):
-        pass
+    def test_enroll_unauth_user(self):
+        self.client.logout()
+        response = self.client.post(
+            reverse("courses:enroll", kwargs={"slug": self.course.slug}),
+            # header
+            HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 302)
+
+    def test_enroll_auth_user(self):
+        response = self.client.post(
+            reverse("courses:enroll", kwargs={"slug": self.course.slug}),
+            # header
+            HTTP_HX_REQUEST="true")
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            Enrollment.objects.filter(
+                user=self.student, course=self.course
+            ).exists()
+        )
 
     def test_unenroll(self):
-        pass
+        self.enrollment = Enrollment.objects.create(
+            user=self.student,
+            course=self.course
+        )
+        response = self.client.post(
+            reverse("courses:unenroll", kwargs={'slug': self.course.slug}),
+            HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            Enrollment.objects.filter(
+                user=self.student,
+                course=self.course
+            ).exists()
+        )
 
-    def test_enrolled_user_can_access_lesson(self):
-        pass
+    def test_duplicate_enroll(self):
+        """ Enrolling twice should not create two enrollments """
+        Enrollment.objects.create(user=self.student, course=self.course)
+        self.client.post(
+            reverse("courses:enroll", kwargs={"slug": self.course.slug}),
+            HTTP_HX_REQUEST='true'
+        )
+        self.assertEqual(
+            Enrollment.objects.filter(
+                user=self.student,
+                course=self.course
+                ).count(),
+                1
+        )
 
-    def test_unenrolled_user_cannot_access_lesson(self):
-        pass
-
-    def test_duplicate_enrolls(self):
-        pass
-
-    def test_duplicate_unenrolls(self):
-        pass
+    def test_enroll_unpublished_course(self):
+        response = self.client.post(
+            reverse("courses:enroll", kwargs={"slug": self.unpublished.slug}),
+            HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 404)

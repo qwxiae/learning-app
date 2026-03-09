@@ -8,6 +8,7 @@ services:
       dockerfile: infra/docker/Dockerfile
     ports: 
       - "8000:8000"
+    # remove at prod
     volumes: 
       - .:/app 
     depends_on:

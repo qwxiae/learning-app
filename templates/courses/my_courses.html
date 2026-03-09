@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Courses — EduPlatform{% endblock %}
+
+{% block content %}
+
+<div class="my-courses-header">
+    <h1>My Courses</h1>
+    <p>{{ enrollments|length }} course{% if enrollments|length != 1 %}s{% endif %} enrolled</p>
+</div>
+
+{% if enrollments %}
+    <div class="my-courses-grid">
+        {% for enrollment in enrollments %}
+        <div class="my-course-card">
+
+            <!-- Cover -->
+            <a href="{{ enrollment.course.get_absolute_url }}" class="my-course-cover">
+                {% if enrollment.course.cover %}
+                    <img src="{{ enrollment.course.cover.url }}"
+                         alt="{{ enrollment.course.title }}">
+                {% else %}
+                    <div class="my-course-cover-placeholder">
+                        <span>{{ enrollment.course.title|slice:":2"|upper }}</span>
+                    </div>
+                {% endif %}
+            </a>
+
+            <!-- Body -->
+            <div class="my-course-body">
+
+                {% if enrollment.course.category %}
+                    <span class="badge badge-accent">{{ enrollment.course.category.name }}</span>
+                {% endif %}
+
+                <a href="{{ enrollment.course.get_absolute_url }}" class="my-course-title">
+                    {{ enrollment.course.title }}
+                </a>
+
+                <!-- Progress -->
+                <div class="my-course-progress">
+                    <div class="progress-header">
+                        <span class="progress-label">Progress</span>
+                        <!-- TODO: replace 0 with actual completion percentage -->
+                        <span class="progress-value">{{ enrollment.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-fill" style="width: {{ enrollment.progress_percentage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="my-course-actions">
+                    <a href="{{ enrollment.course.get_absolute_url }}"
+                       class="btn btn-primary">
+                        Continue
+                    </a>
+                    <form method="POST"
+                          action="{% url 'courses:unenroll' slug=enrollment.course.slug %}"
+                          style="display:inline">
+                        {% csrf_token %}
+                        <button class="btn btn-danger">Unenroll</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% else %}
+    <div class="empty-state">
+        <p>You haven't enrolled in any courses yet.</p>
+        <a href="{% url 'courses:catalog' %}" class="btn btn-primary">
+            Browse Catalog
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+    /* HEADER */
+    .my-courses-header {
+        margin-bottom: 2rem;
+    }
+
+    .my-courses-header h1 {
+        margin-bottom: 0.25rem;
+    }
+
+    .my-courses-header > p {
+        color: var(--text-dim);
+        font-size: 0.85rem;
+    }
+
+    /* GRID */
+    .my-courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.25rem;
+    }
+
+    /* CARD */
+    .my-course-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .my-course-card:hover {
+        border-color: var(--border-hi);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    /* COVER */
+    .my-course-cover {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        background: var(--bg-hover);
+        text-decoration: none;
+    }
+
+    .my-course-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .my-course-card:hover .my-course-cover img {
+        transform: scale(1.03);
+    }
+
+    .my-course-cover-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-dim), var(--bg-hover));
+    }
+
+    .my-course-cover-placeholder span {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 800;
+        color: rgba(255,255,255,0.25);
+    }
+
+    /* BODY */
+    .my-course-body {
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .my-course-title {
+        font-family: var(--font-head);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        text-decoration: none;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+    }
+
+    .my-course-title:hover {
+        color: #8899ff;
+    }
+
+    /* PROGRESS */
+    .my-course-progress {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin-top: auto;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+    }
+
+    .progress-label { color: var(--text-dim); }
+    .progress-value { color: var(--text); font-weight: 500; }
+
+    /* ACTIONS */
+    .my-course-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .my-course-actions .btn-primary {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+        text-align: center;
+        padding: 5rem 1rem;
+        color: var(--text-dim);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+        .my-courses-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+{% endblock %}

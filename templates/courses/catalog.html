@@ -1,13 +1,272 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catalog — EduPlatform{% endblock %}
 
 {% block content %}
-{% for category in categories %} 
-    <p> {{ category.name }} </p>
-{% endfor %}
 
-{% for course in courses %} 
-    <a href={{ course.get_absolute_url }}> {{ course.title }} - {{course.author.username}} </a>
-    <br>
-{% endfor %}
+<div class="catalog-header">
+    <h1>Catalog</h1>
+    <p>Explore our courses</p>
 
-{% endblock content %}
+    <form class="search-form" method="GET" action="">
+        <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Search courses..."
+            class="search-input"
+        >
+        {% if current_category %}
+            <input type="hidden" name="category" value="{{ current_category }}">
+        {% endif %}
+    </form>
+</div>
+
+<div class="category-filters">
+    <a href="{% url 'courses:catalog' %}{% if q %}?q={{ q }}{% endif %}"
+       class="filter-pill {% if not current_category %}active{% endif %}">
+        All
+    </a>
+    {% for category in categories %}
+        <a href="{% url 'courses:catalog' %}?category={{ category.slug }}{% if q %}&q={{ q }}{% endif %}"
+           class="filter-pill {% if current_category == category.slug %}active{% endif %}">
+            {{ category.name }}
+        </a>
+    {% endfor %}
+</div>
+
+<p class="results-count">
+    {{ courses|length }} course{% if courses|length != 1 %}s{% endif %}
+    {% if q %}for "<strong>{{ q }}</strong>"{% endif %}
+    {% if current_category %}in <strong>{{ current_category }}</strong>{% endif %}
+</p>
+
+{% if courses %}
+    <div class="course-grid">
+        {% for course in courses %}
+            <a href="{{ course.get_absolute_url }}" class="course-card">
+
+                <div class="course-card-cover">
+                    {% if course.cover %}
+                        <img src="{{ course.cover.url }}" alt="{{ course.title }}">
+                    {% else %}
+                        <div class="course-card-cover-placeholder">
+                            <span>{{ course.title|slice:":2"|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="course-card-body">
+                    {% if course.category %}
+                        <span class="badge badge-accent">{{ course.category.name }}</span>
+                    {% endif %}
+
+                    <h3 class="course-card-title">{{ course.title }}</h3>
+
+                    <p class="course-card-author">{{ course.author.username }}</p>
+                </div>
+
+            </a>
+        {% endfor %}
+    </div>
+
+{% else %}
+    <div class="empty-state">
+        <p>No courses found.</p>
+        <a href="{% url 'courses:catalog' %}" class="btn btn-ghost">Clear filters</a>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* CATALOG HEADER */
+  .catalog-header {
+      margin-bottom: 2rem;
+  }
+
+  .catalog-header h1 {
+      margin-bottom: 0.25rem;
+  }
+
+  .catalog-header > p {
+      color: var(--text-dim);
+      margin-bottom: 1.25rem;
+  }
+
+  /* SEARCH */
+  .search-form {
+      display: flex;
+      max-width: 480px;
+  }
+
+  .search-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 0.65rem 1rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* CATEGORY PILLS */
+  .category-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+  }
+
+  .filter-pill {
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      border: 1px solid var(--border-hi);
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+  }
+
+  .filter-pill:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-glow);
+  }
+
+  .filter-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+  }
+
+  /* RESULTS COUNT */
+  .results-count {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      margin-bottom: 1.5rem;
+  }
+
+  .results-count strong {
+      color: var(--text);
+  }
+
+  /* COURSE GRID */
+  .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+  }
+
+  /* COURSE CARD */
+  .course-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .course-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  /* Cover image */
+  .course-card-cover {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      background: var(--bg-hover);
+  }
+
+  .course-card-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+  }
+
+  .course-card:hover .course-card-cover img {
+      transform: scale(1.04);
+  }
+
+  /* Placeholder when no cover */
+  .course-card-cover-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--accent-dim), var(--bg-hover));
+  }
+
+  .course-card-cover-placeholder span {
+      font-family: var(--font-head);
+      font-size: 2rem;
+      font-weight: 800;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: -0.02em;
+  }
+
+  /* Card body */
+  .course-card-body {
+      padding: 1rem 1.1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+  }
+
+  .course-card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+      letter-spacing: -0.01em;
+  }
+
+  .course-card-author {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: auto;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+      .course-grid {
+          grid-template-columns: 1fr;
+      }
+
+      .search-form {
+          max-width: 100%;
+      }
+  }
+</style>
+{% endblock %}

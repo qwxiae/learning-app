@@ -1,9 +1,375 @@
 {% extends "base.html" %}
+{% load static %}
 
+{% block title %}EduPlatform — Learn anything{% endblock %}
 
 {% block content %}
-<div class="card">
-{% lorem 1 p %}
-<a href="{% url 'courses:catalog' %}">Course catalog</a>
-</div>
-{% endblock content %}
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-label">Welcome to EduPlatform</div>
+        <h1 class="hero-title">
+            Knowledge is<br>
+            <span class="hero-accent">always within reach.</span>
+        </h1>
+        <p class="hero-sub">
+            Explore hundreds of courses across programming, mathematics,
+            cybersecurity and more. Start learning for free today.
+        </p>
+        <div class="hero-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'courses:catalog' %}" class="btn btn-primary">Browse Catalog</a>
+                <a href="{% url 'courses:my_courses' %}" class="btn btn-ghost">My Courses</a>
+            {% else %}
+                <a href="{% url 'users:register' %}" class="btn btn-primary">Get Started</a>
+                <a href="{% url 'courses:catalog' %}" class="btn btn-ghost">Browse Catalog</a>
+            {% endif %}
+        </div>
+    </div>
+
+</section>
+
+<hr>
+
+<!-- CATEGORIES -->
+{% if categories %}
+<section class="home-section">
+    <h2>Browse by category</h2>
+    <div class="category-links">
+        {% for category in categories %}
+        <a href="{% url 'courses:catalog' %}?category={{ category.slug }}"
+           class="category-link">
+            <span class="category-link-name">{{ category.name }}</span>
+            {% if category.description %}
+                <span class="category-link-desc">{{ category.description|truncatechars:60 }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<hr>
+{% endif %}
+
+<!-- FEATURED COURSES -->
+{% if featured_courses %}
+<section class="home-section">
+    <div class="section-header">
+        <h2>Latest courses</h2>
+        <a href="{% url 'courses:catalog' %}" class="section-link">View all →</a>
+    </div>
+
+    <div class="course-grid">
+        {% for course in featured_courses %}
+        <a href="{{ course.get_absolute_url }}" class="course-card">
+
+            <div class="course-card-cover">
+                {% if course.cover %}
+                    <img src="{{ course.cover.url }}" alt="{{ course.title }}">
+                {% else %}
+                    <div class="course-card-cover-placeholder">
+                        <span>{{ course.title|slice:":2"|upper }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="course-card-body">
+                {% if course.category %}
+                    <span class="badge badge-accent">{{ course.category.name }}</span>
+                {% endif %}
+                <h3 class="course-card-title">{{ course.title }}</h3>
+                <p class="course-card-author">{{ course.author.username }}</p>
+            </div>
+
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA BANNER -->
+{% if not user.is_authenticated %}
+<section class="cta-banner">
+    <div class="cta-banner-content">
+        <h2>Ready to start learning?</h2>
+        <p>Join thousands of learners and get access to all courses for free.</p>
+    </div>
+    <a href="{% url 'users:register' %}" class="btn btn-primary">Create Free Account</a>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+    /* HERO */
+    .hero {
+        padding: 3.5rem 0 2.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+
+    .hero-content {
+        max-width: 640px;
+    }
+
+    .hero-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        margin-bottom: 1rem;
+    }
+
+    .hero-title {
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        line-height: 1.08;
+        margin-bottom: 1.25rem;
+    }
+
+    .hero-accent {
+        color: var(--accent);
+    }
+
+    .hero-sub {
+        font-size: 1rem;
+        color: var(--text-dim);
+        line-height: 1.75;
+        max-width: 520px;
+        margin-bottom: 2rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* STATS */
+    .hero-stats {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        width: fit-content;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+
+    .stat-value {
+        font-family: var(--font-head);
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 32px;
+        background: var(--border);
+    }
+
+    /* SECTIONS */
+    .home-section {
+        padding: 2rem 0;
+    }
+
+    .home-section h2 {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        margin-bottom: 0;
+    }
+
+    .section-link {
+        font-size: 0.82rem;
+        color: var(--accent);
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+
+    .section-link:hover {
+        color: #8899ff;
+    }
+
+    /* CATEGORY LINKS */
+    .category-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .category-link {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.25rem;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    }
+
+    .category-link:hover {
+        border-color: var(--accent);
+        background: var(--accent-glow);
+        transform: translateY(-2px);
+    }
+
+    .category-link-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text);
+    }
+
+    .category-link-desc {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        line-height: 1.4;
+    }
+
+    /* COURSE GRID (reuse catalog styles) */
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .course-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .course-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .course-card-cover {
+        width: 100%;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+        background: var(--bg-hover);
+    }
+
+    .course-card-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .course-card:hover .course-card-cover img {
+        transform: scale(1.04);
+    }
+
+    .course-card-cover-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-dim), var(--bg-hover));
+    }
+
+    .course-card-cover-placeholder span {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 800;
+        color: rgba(255,255,255,0.25);
+    }
+
+    .course-card-body {
+        padding: 1rem 1.1rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .course-card-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+    }
+
+    .course-card-author {
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        margin-top: auto;
+    }
+
+    /* CTA BANNER */
+    .cta-banner {
+        margin-top: 1rem;
+        padding: 2.5rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+    }
+
+    .cta-banner-content h2 {
+        margin-bottom: 0.3rem;
+    }
+
+    .cta-banner-content p {
+        color: var(--text-dim);
+        font-size: 0.88rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 720px) {
+        .hero { padding: 2rem 0; }
+        .hero-stats { width: 100%; justify-content: space-around; }
+        .cta-banner { flex-direction: column; text-align: center; }
+        .course-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+        .course-grid { grid-template-columns: 1fr; }
+        .category-links { grid-template-columns: 1fr; }
+    }
+
+</style>
+{% endblock %}

@@ -1,5 +1,336 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ course.title }} — EduPlatform{% endblock %}
 
 {% block content %}
-{{ course.title }}
-{% endblock content %}
+
+{% if course.cover %}
+<div class="course-cover">
+    <img src="{{ course.cover.url }}" alt="{{ course.title }}">
+    <div class="course-cover-overlay"></div>
+</div>
+{% endif %}
+
+<div class="course-detail-layout">
+
+    <!-- LEFT: MAIN CONTENT -->
+    <div class="course-main">
+
+        {% if course.category %}
+            <span class="badge badge-accent">{{ course.category.name }}</span>
+        {% endif %}
+        <h1 class="course-title">{{ course.title }}</h1>
+        <p class="course-meta">
+            By <strong>{{ course.author.username }}</strong>
+            &nbsp;·&nbsp;
+            {{ course.modules_count }} module{% if course.modules_count != 1 %}s{% endif %}
+        </p>
+
+        <hr>
+
+        <!-- Description -->
+        {% if course.description %}
+        <section class="course-section">
+            <h2>About this course</h2>
+            <p>{{ course.description }}</p>
+        </section>
+        {% endif %}
+
+        <!-- Promo content -->
+        {% if course.promo_content %}
+        <section class="course-section">
+            {{ course.promo_content|safe }}
+        </section>
+        {% endif %}
+
+        <!-- MODULES LIST -->
+        {% if modules %}
+        <section class="course-section">
+            <h2>Course content</h2>
+            <div class="modules-list">
+                {% for module in modules %}
+                <div class="module-item">
+                    <div class="module-header">
+                        <span class="module-order">{{ forloop.counter }}</span>
+                        <span class="module-title">{{ module.title }}</span>
+                        <span class="module-count">
+                            {{ module.lessons_count }} lesson{% if module.lessons_count != 1 %}s{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="lessons-list">
+                        {% for lesson in module.lessons.all %}
+                            {% if is_enrolled %}
+                                <a href="{% url 'lessons:lesson' lesson.public_id %}" class="lesson-item">
+                            {% else %}
+                                <div class="lesson-item lesson-locked">
+                            {% endif %}
+                                <span class="lesson-icon">{% if is_enrolled %}▸{% else %}🔒{% endif %}</span>
+                                <span class="lesson-title">{{ lesson.title }}</span>
+                            {% if is_enrolled %}
+                                </a>
+                            {% else %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
+
+    <!-- RIGHT: ENROLL CARD -->
+    <aside class="course-sidebar">
+        <div class="enroll-card">
+
+            {% if course.cover %}
+            <img src="{{ course.cover.url }}"
+                 alt="{{ course.title }}"
+                 class="enroll-card-cover">
+            {% else %}
+            <div class="enroll-card-cover-placeholder">
+                <span>{{ course.title|slice:":2"|upper }}</span>
+            </div>
+            {% endif %}
+
+            <div class="enroll-card-body">
+                <div id="enroll-section">
+                    {% include "partials/enroll_button.html" %}
+                </div>
+
+                <ul class="course-facts">
+                    <li>
+                        <span class="fact-label">Modules</span>
+                        <span class="fact-value">{{ course.modules_count }}</span>
+                    </li>
+                    <li>
+                        <span class="fact-label">Author</span>
+                        <span class="fact-value">{{ course.author.username }}</span>
+                    </li>
+                    {% if course.category %}
+                    <li>
+                        <span class="fact-label">Category</span>
+                        <span class="fact-value">{{ course.category.name }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+        </div>
+    </aside>
+
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+    /* COVER */
+    .course-cover {
+        position: relative;
+        width: 100%;
+        max-height: 340px;
+        overflow: hidden;
+        border-radius: var(--radius-lg);
+        margin-bottom: 2rem;
+    }
+
+    .course-cover img {
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+    }
+
+    .course-cover-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%);
+    }
+
+    /* LAYOUT */
+    .course-detail-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 2.5rem;
+        align-items: start;
+    }
+
+    /* MAIN */
+    .course-title {
+        margin: 0.5rem 0 0.4rem;
+    }
+
+    .course-meta {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        margin-bottom: 1rem;
+    }
+
+    .course-meta strong {
+        color: var(--text);
+    }
+
+    .course-section {
+        margin-top: 2rem;
+    }
+
+    .course-section h2 {
+        margin-bottom: 1rem;
+    }
+
+    /* MODULES */
+    .modules-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .module-item {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .module-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: var(--bg-card);
+    }
+
+    .module-order {
+        font-size: 0.72rem;
+        color: var(--text-faint);
+        min-width: 1.2rem;
+    }
+
+    .module-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text);
+        flex: 1;
+    }
+
+    .module-count {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+    }
+
+    /* LESSONS */
+    .lessons-list {
+        border-top: 1px solid var(--border);
+    }
+
+    .lesson-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: background 0.15s, color 0.15s;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .lesson-item:last-child {
+        border-bottom: none;
+    }
+
+    .lesson-item:hover {
+        background: var(--bg-hover);
+        color: var(--text);
+    }
+
+    .lesson-icon {
+        color: var(--accent);
+        font-size: 0.7rem;
+    }
+
+    /* SIDEBAR */
+    .course-sidebar {
+        position: sticky;
+        top: calc(var(--nav-h) + 1.5rem);
+    }
+
+    .enroll-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    .enroll-card-cover {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+    }
+
+    .enroll-card-cover-placeholder {
+        width: 100%;
+        aspect-ratio: 16/9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent-dim), var(--bg-hover));
+    }
+
+    .enroll-card-cover-placeholder span {
+        font-family: var(--font-head);
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: rgba(255,255,255,0.2);
+    }
+
+    .enroll-card-body {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    /* FACTS LIST */
+    .course-facts {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        border-top: 1px solid var(--border);
+        padding-top: 1rem;
+    }
+
+    .course-facts li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.82rem;
+    }
+
+    .fact-label { color: var(--text-dim); }
+    .fact-value { color: var(--text); font-weight: 500; }
+
+    /* RESPONSIVE */
+    @media (max-width: 860px) {
+        .course-detail-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .course-sidebar {
+            position: static;
+            order: -1;
+        }
+
+        .enroll-card-cover,
+        .enroll-card-cover-placeholder {
+            display: none;
+        }
+    }
+
+</style>
+{% endblock %}

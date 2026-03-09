@@ -272,7 +272,6 @@ body {
 .btn-primary {
     background: var(--accent);
     color: #fff;
-    margin-top: 10px;
 }
 
 .btn-primary:hover {

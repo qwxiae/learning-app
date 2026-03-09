@@ -137,17 +137,28 @@ AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
 
 
-if ENVIRONMENT == "production":
-    CACHES = {
-        "default":
-        {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
+# TODO: change this
+# if ENVIRONMENT == "production":
+#     CACHES = {
+#         "default":
+#         {
+#             "BACKEND": "django_redis.cache.RedisCache",
+#             "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
+#             "OPTIONS": {
+#                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             }
+#         }
+#     }
+CACHES = {
+    "default":
+    {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
+}
 
 
 EMAIL_HOST = get_secret('email_host', 'EMAIL_HOST', default='localhost')
@@ -164,7 +175,7 @@ INTERNAL_IPS = [
 # === Debug toolbar does not start in tests
 TESTING = "test" in sys.argv or "PYTEST_VERSION" in os.environ
 
-if not TESTING:
+if not TESTING and ENVIRONMENT == "development":
     INSTALLED_APPS = [
         *INSTALLED_APPS,
         "debug_toolbar",

@@ -1,0 +1,64 @@
+{% load static %}
+<!-- swapped into #step-content -->
+{% if current_step.type == "T" %}
+<div class="theory-content">
+    {{ current_step.html_content|safe }}
+</div>
+
+{% elif current_step.type == "C" %}
+<div class="question-card">
+    <p class="question-text">{{ current_step.question_text }}</p>
+    <form hx-post="{% url 'lessons:submit' lesson.public_id %}"
+          hx-target="#step-content"
+          hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="step_id" value="{{ current_step.pk }}">
+        <input type="hidden" name="step_order" value="{{ current_step.order }}">
+        <div class="options-list">
+            {% for option in current_step.options.all %}
+                <label class="option-label">
+                    <input type="{% if current_step.is_multiple %}checkbox{% else %}radio{% endif %}"
+                           name="answer"
+                           value="{{ option.pk }}">
+                    <span>{{ option.text }}</span>
+                </label>
+            {% endfor %}
+        </div>
+        <button class="btn btn-primary" type="submit">Submit answer</button>
+    </form>
+</div>
+
+{% elif current_step.type == "I" %}
+<div class="question-card">
+    <p class="question-text">{{ current_step.question_text }}</p>
+    <form hx-post="{% url 'lessons:submit' lesson.public_id %}"
+          hx-target="#step-content"
+          hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="step_id" value="{{ current_step.pk }}">
+        <input type="hidden" name="step_order" value="{{ current_step.order }}">
+        <div class="form-group">
+            <input type="text" name="answer" placeholder="Type your answer..." autocomplete="off">
+        </div>
+        <button class="btn btn-primary" type="submit">Submit answer</button>
+    </form>
+</div>
+
+{% elif current_step.type == "P" %}
+<div class="question-card">
+    <p class="question-text">{{ current_step.question_text }}</p>
+    <form hx-post="{% url 'lessons:submit' lesson.public_id %}"
+          hx-target="#step-content"
+          hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden" name="step_id" value="{{ current_step.pk }}">
+        <input type="hidden" name="step_order" value="{{ current_step.order }}">
+        <div class="form-group">
+            <textarea name="code"
+                      class="code-editor"
+                      spellcheck="false">{{ current_step.solution_template }}</textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Run code</button>
+    </form>
+</div>
+{% endif %}

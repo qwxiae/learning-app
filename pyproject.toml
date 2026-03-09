@@ -56,6 +56,7 @@ dependencies = [
     "pillow==12.1.1",
     "pip==25.1.1",
     "prompt-toolkit==3.0.52",
+    "psycopg2-binary>=2.9.11",
     "pure-eval==0.2.3",
     "pygments==2.19.2",
     "python-dateutil==2.9.0.post0",
@@ -71,4 +72,5 @@ dependencies = [
     "tzlocal==5.3.1",
     "vine==5.1.0",
     "wcwidth==0.6.0",
+    "whitenoise>=6.12.0",
 ]

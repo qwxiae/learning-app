@@ -3,13 +3,27 @@ from decouple import config
 import sys
 import os
 
+ENVIRONMENT = config("ENVIRONMENT", default="development")
+def get_secret(name, env_var, default=None, cast=str):
+    secret_path = f"/run/secrets/{name}"
+    if os.path.exists(secret_path):
+        with open(secret_path) as f:
+            return f.read().strip()
+    
+    return config(env_var, default=default, cast=cast)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', cast=bool)
+SECRET_KEY = get_secret(
+    'django_secret_jey',
+    'SECRET_KEY'
+)
+DEBUG = get_secret(
+    'debug', 
+    'DEBUG',
+    default=False,
+    cast=bool
+)
 
 ALLOWED_HOSTS = []
 
@@ -34,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -41,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 ROOT_URLCONF = 'config.urls'
 
@@ -63,21 +79,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # SECURITY WARNING: use postgres in production, store data in env
-if DEBUG:
+if ENVIRONMENT == "production":
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': get_secret('postgres_host', 'POSTGRES_HOST'),
+            'NAME': get_secret('postgres_name', 'POSTGRES_DB'),
+            'USER': get_secret('postgres_user', 'POSTGRES_USER'),
+            'PASSWORD': get_secret('db_password', 'POSTGRES_PASSWORD'),
         }
     }
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'HOST': config('DB_HOST'),
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASS'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -120,21 +136,21 @@ MEDIA_ROOT = BASE_DIR / "media"
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
 
-# SECURITY WARNING: don't forget to set password for redis
-# == Sessions are stored in redis ===
-# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-# SESSION_CACHE_ALIAS = "default"
 
-# CACHES = {
-#     "default":
-#     {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1"
-#     }
-# }
+if ENVIRONMENT == "production":
+    CACHES = {
+        "default":
+        {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
 
 
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_HOST = get_secret('email_host', 'EMAIL_HOST', default='localhost')
 
 LOGIN_URL = "users:login"
 

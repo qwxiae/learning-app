@@ -5,129 +5,245 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('courses', '0002_initial'),
+        ("courses", "0002_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Step',
+            name="Step",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('type', models.CharField(choices=[('T', 'Theory'), ('C', 'Choice'), ('I', 'Text Input'), ('P', 'Programming')], default='T', max_length=1)),
-                ('order', models.PositiveSmallIntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("T", "Theory"),
+                            ("C", "Choice"),
+                            ("I", "Text Input"),
+                            ("P", "Programming"),
+                        ],
+                        default="T",
+                        max_length=1,
+                    ),
+                ),
+                ("order", models.PositiveSmallIntegerField()),
             ],
             options={
-                'db_table': 'lessons_step',
-                'ordering': ['order'],
+                "db_table": "lessons_step",
+                "ordering": ["order"],
             },
         ),
         migrations.CreateModel(
-            name='Lesson',
+            name="Lesson",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('public_id', models.CharField(editable=False, max_length=6, unique=True)),
-                ('title', models.CharField(max_length=255)),
-                ('is_published', models.BooleanField(default=False)),
-                ('order', models.PositiveSmallIntegerField(default=0)),
-                ('module', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lessons', to='courses.module')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "public_id",
+                    models.CharField(editable=False, max_length=6, unique=True),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("is_published", models.BooleanField(default=False)),
+                ("order", models.PositiveSmallIntegerField(default=0)),
+                (
+                    "module",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="lessons",
+                        to="courses.module",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'lessons_lesson',
-                'ordering': ['order'],
-                'unique_together': {('module', 'order')},
+                "db_table": "lessons_lesson",
+                "ordering": ["order"],
+                "unique_together": {("module", "order")},
             },
         ),
         migrations.CreateModel(
-            name='ChoiceStep',
+            name="ChoiceStep",
             fields=[
-                ('step_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='lessons.step')),
-                ('question_text', models.TextField()),
-                ('is_multiple', models.BooleanField(default=False)),
+                (
+                    "step_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="lessons.step",
+                    ),
+                ),
+                ("question_text", models.TextField()),
+                ("is_multiple", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'lessons_choicestep',
+                "db_table": "lessons_choicestep",
             },
-            bases=('lessons.step',),
+            bases=("lessons.step",),
         ),
         migrations.CreateModel(
-            name='ProgrammingStep',
+            name="ProgrammingStep",
             fields=[
-                ('step_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='lessons.step')),
-                ('question_text', models.TextField()),
-                ('language', models.CharField(choices=[('py', 'Python')], default='py', max_length=6)),
-                ('time_limit_ms', models.PositiveIntegerField(default=5000)),
-                ('memory_limit_mb', models.PositiveIntegerField(default=50)),
-                ('solution_template', models.TextField(blank=True, default='')),
+                (
+                    "step_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="lessons.step",
+                    ),
+                ),
+                ("question_text", models.TextField()),
+                (
+                    "language",
+                    models.CharField(
+                        choices=[("py", "Python")], default="py", max_length=6
+                    ),
+                ),
+                ("time_limit_ms", models.PositiveIntegerField(default=5000)),
+                ("memory_limit_mb", models.PositiveIntegerField(default=50)),
+                ("solution_template", models.TextField(blank=True, default="")),
             ],
             options={
-                'db_table': 'lessons_programmingstep',
+                "db_table": "lessons_programmingstep",
             },
-            bases=('lessons.step',),
+            bases=("lessons.step",),
         ),
         migrations.CreateModel(
-            name='TextInputStep',
+            name="TextInputStep",
             fields=[
-                ('step_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='lessons.step')),
-                ('question_text', models.TextField()),
-                ('answer', models.CharField(max_length=255)),
+                (
+                    "step_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="lessons.step",
+                    ),
+                ),
+                ("question_text", models.TextField()),
+                ("answer", models.CharField(max_length=255)),
             ],
             options={
-                'db_table': 'lessons_textinputstep',
+                "db_table": "lessons_textinputstep",
             },
-            bases=('lessons.step',),
+            bases=("lessons.step",),
         ),
         migrations.CreateModel(
-            name='TheoryStep',
+            name="TheoryStep",
             fields=[
-                ('step_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='lessons.step')),
-                ('html_content', models.TextField()),
+                (
+                    "step_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="lessons.step",
+                    ),
+                ),
+                ("html_content", models.TextField()),
             ],
             options={
-                'db_table': 'lessons_theorystep',
+                "db_table": "lessons_theorystep",
             },
-            bases=('lessons.step',),
+            bases=("lessons.step",),
         ),
         migrations.AddField(
-            model_name='step',
-            name='lesson',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='steps', to='lessons.lesson'),
+            model_name="step",
+            name="lesson",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="steps",
+                to="lessons.lesson",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='step',
-            unique_together={('lesson', 'order')},
+            name="step",
+            unique_together={("lesson", "order")},
         ),
         migrations.CreateModel(
-            name='ChoiceOption',
+            name="ChoiceOption",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('is_correct', models.BooleanField(default=False)),
-                ('order', models.PositiveSmallIntegerField()),
-                ('step', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='options', to='lessons.choicestep')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                ("is_correct", models.BooleanField(default=False)),
+                ("order", models.PositiveSmallIntegerField()),
+                (
+                    "step",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="options",
+                        to="lessons.choicestep",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'lessons_choiceoption',
-                'unique_together': {('step', 'order')},
+                "db_table": "lessons_choiceoption",
+                "unique_together": {("step", "order")},
             },
         ),
         migrations.CreateModel(
-            name='TestCase',
+            name="TestCase",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('input_data', models.TextField()),
-                ('expected_output', models.TextField()),
-                ('order', models.PositiveSmallIntegerField()),
-                ('step', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='test_cases', to='lessons.programmingstep')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("input_data", models.TextField()),
+                ("expected_output", models.TextField()),
+                ("order", models.PositiveSmallIntegerField()),
+                (
+                    "step",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="test_cases",
+                        to="lessons.programmingstep",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'lessons_testcase',
-                'ordering': ['order'],
-                'unique_together': {('step', 'order')},
+                "db_table": "lessons_testcase",
+                "ordering": ["order"],
+                "unique_together": {("step", "order")},
             },
         ),
     ]

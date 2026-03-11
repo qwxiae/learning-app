@@ -7,8 +7,10 @@ from django.db.models import Count
 
 User = get_user_model()
 
+
 class Category(models.Model):
-    """ Categories that group courses """
+    """Categories that group courses"""
+
     name = models.CharField(max_length=100, unique=True, blank=False)
     description = models.TextField(max_length=500, blank=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
@@ -16,12 +18,12 @@ class Category(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-        
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("courses:category_detail", kwargs={"slug": self.slug})
-    
+
     class Meta:
         db_table = "courses_category"
         verbose_name_plural = "categories"
@@ -31,13 +33,11 @@ class Category(models.Model):
 
 
 class Course(models.Model):
-    """ Course that stores modules """
+    """Course that stores modules"""
+
     # Keep the course even if author is gone
     author = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="courses"
+        User, on_delete=models.SET_NULL, null=True, related_name="courses"
     )
     # Author can assign another one.
     category = models.ForeignKey(
@@ -45,13 +45,13 @@ class Course(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="courses"
+        related_name="courses",
     )
 
     title = models.CharField(max_length=255, blank=False)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     is_published = models.BooleanField(default=False)
-    
+
     # Textfields dont need max length
     description = models.TextField(blank=False, default="")
 
@@ -63,7 +63,7 @@ class Course(models.Model):
 
     def get_absolute_url(self):
         return reverse("courses:course_detail", kwargs={"slug": self.slug})
-    
+
     def save(self, *args, **kwargs):
         if not self.slug:
             base_slug = slugify(self.title)
@@ -78,19 +78,16 @@ class Course(models.Model):
 
     def __str__(self):
         return f"Course({self.title})"
-    
+
 
 class Module(models.Model):
     """
-    Module that lessons are connected to. Not used in URL. 
+    Module that lessons are connected to. Not used in URL.
     Only used to group lessons in side-bar, ceration form, and
-    analytics 
+    analytics
     """
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="modules"
-    )
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="modules")
     title = models.CharField(max_length=255, blank=False)
     order = models.PositiveSmallIntegerField(default=0)
 
@@ -102,18 +99,14 @@ class Module(models.Model):
 
     def __str__(self):
         return f"Module(Course({self.course.title}), {self.title})"
-    
+
+
 class Enrollment(models.Model):
-    """ Connect user to course """
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="enrollments"
-    )
+    """Connect user to course"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="enrollments")
     course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="enrollments"
+        Course, on_delete=models.CASCADE, related_name="enrollments"
     )
     enrolled_at = models.DateTimeField(auto_now_add=True)
     last_active_at = models.DateTimeField(auto_now=True)
@@ -121,20 +114,18 @@ class Enrollment(models.Model):
 
     @property
     def progress_percentage(self):
-        """ 
-        Based on lesson count as percentage can be derived 
+        """
+        Based on lesson count as percentage can be derived
         from lesson count but not vice versa
         """
-        result = self.course.modules.aggregate(
-            total=Count("lessons")
-        )
+        result = self.course.modules.aggregate(total=Count("lessons"))
 
         total = result["total"] or 0
         if total == 0:
             return 0
 
         return round(self.progress / total * 100)
-    
+
     class Meta:
         db_table = "courses_enrollment"
         unique_together = [("user", "course")]

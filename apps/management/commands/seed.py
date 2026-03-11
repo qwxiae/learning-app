@@ -1,5 +1,6 @@
 from django.core.management import BaseCommand, call_command
 
+
 class Command(BaseCommand):
     help = "Test data for all apps in project"
 

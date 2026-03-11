@@ -3,6 +3,7 @@ from .models import User, Profile, Role, UserRole
 from django.urls import reverse
 from django.db.models import ProtectedError
 
+
 class BaseTestCase(TestCase):
     def setUp(self):
         self.client = Client()
@@ -12,6 +13,7 @@ class BaseTestCase(TestCase):
             email="test@test.com",
             password="Xk9#mP2$qL5nR8@w123",
         )
+
 
 class UserTestCase(BaseTestCase):
     def test_create_user(self):
@@ -24,21 +26,25 @@ class UserTestCase(BaseTestCase):
         self.assertIsInstance(self.user.profile, Profile)
 
     def test_register_user(self):
-        response = self.client.post(reverse("users:register"), {
-            "email": "test2@test.com",
-            "username": "test_user2",
-            "password1": "Xk9#mP2$qL5nR8@w123",
-            "password2": "Xk9#mP2$qL5nR8@w123",
-            }
+        response = self.client.post(
+            reverse("users:register"),
+            {
+                "email": "test2@test.com",
+                "username": "test_user2",
+                "password1": "Xk9#mP2$qL5nR8@w123",
+                "password2": "Xk9#mP2$qL5nR8@w123",
+            },
         )
         # redirect after register
         self.assertEqual(response.status_code, 302)
 
     def test_login_user(self):
-        response = self.client.post(reverse("users:login"), {
-            "email": "test@test.com",
-            "password": "Xk9#mP2$qL5nR8@w123",
-            }
+        response = self.client.post(
+            reverse("users:login"),
+            {
+                "email": "test@test.com",
+                "password": "Xk9#mP2$qL5nR8@w123",
+            },
         )
         # redirect after login
         self.assertEqual(response.status_code, 302)
@@ -53,23 +59,29 @@ class UserTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_login_page_incorrect_data(self):
-        response = self.client.post(reverse("users:login"), {
-            "email": "test@test.com",
-            "password": "wrongpassword",
-        })
+        response = self.client.post(
+            reverse("users:login"),
+            {
+                "email": "test@test.com",
+                "password": "wrongpassword",
+            },
+        )
         # stay on login page
         self.assertEqual(response.status_code, 200)
-    
+
     def test_register_page(self):
         response = self.client.get(reverse("users:register"))
         self.assertEqual(response.status_code, 200)
 
     def test_register_page_incorrect_data(self):
-        response = self.client.post(reverse("users:register"), {
-            "email": "bademail",
-            "password1": "12sjdJHGk!2",
-            "password2": "12sjdJHGk!3"
-        })
+        response = self.client.post(
+            reverse("users:register"),
+            {
+                "email": "bademail",
+                "password1": "12sjdJHGk!2",
+                "password2": "12sjdJHGk!3",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(email="bademail").exists())
 
@@ -78,7 +90,7 @@ class UserTestCase(BaseTestCase):
         response = self.client.get(reverse("users:logout"))
         self.assertEqual(response.status_code, 302)
 
-    
+
 class ProfileTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -91,9 +103,7 @@ class ProfileTestCase(BaseTestCase):
             password="Xk9#mP2$qL5nR8@w321",
         )
         response = self.client.get(
-            reverse(
-                "users:public_profile",
-                kwargs={"username": other_user.username})
+            reverse("users:public_profile", kwargs={"username": other_user.username})
         )
         self.assertEqual(response.status_code, 200)
 
@@ -103,13 +113,16 @@ class ProfileTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_update_my_profile_page(self):
-        response = self.client.post(reverse("users:profile_edit"), {
-            "username": "john4",
-            "first_name": "John",
-            "last_name": "Doe",
-            "bio": "Lorem ipsum...",
-            "phone": "123456789",
-        })
+        response = self.client.post(
+            reverse("users:profile_edit"),
+            {
+                "username": "john4",
+                "first_name": "John",
+                "last_name": "Doe",
+                "bio": "Lorem ipsum...",
+                "phone": "123456789",
+            },
+        )
         self.assertEqual(response.status_code, 302)
         # refresh databas
         self.user.profile.refresh_from_db()
@@ -124,6 +137,7 @@ class RoleTestCase(BaseTestCase):
     def test_delete_role(self):
         with self.assertRaises(ProtectedError):
             self.role.delete()
+
 
 class UserRoleTestCase(BaseTestCase):
     def setUp(self):

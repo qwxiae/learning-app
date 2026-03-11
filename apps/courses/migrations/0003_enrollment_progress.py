@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('courses', '0002_initial'),
+        ("courses", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='enrollment',
-            name='progress',
+            model_name="enrollment",
+            name="progress",
             field=models.PositiveSmallIntegerField(default=0),
         ),
     ]

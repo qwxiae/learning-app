@@ -4,64 +4,97 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('description', models.TextField(blank=True, max_length=500)),
-                ('slug', models.SlugField(blank=True, max_length=100, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True)),
+                ("description", models.TextField(blank=True, max_length=500)),
+                ("slug", models.SlugField(blank=True, max_length=100, unique=True)),
             ],
             options={
-                'verbose_name_plural': 'categories',
-                'db_table': 'courses_category',
+                "verbose_name_plural": "categories",
+                "db_table": "courses_category",
             },
         ),
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('slug', models.SlugField(blank=True, max_length=255, unique=True)),
-                ('is_published', models.BooleanField(default=False)),
-                ('description', models.TextField(default='')),
-                ('promo_content', models.TextField(blank=True, default='')),
-                ('cover', models.ImageField(blank=True, null=True, upload_to='covers/')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("slug", models.SlugField(blank=True, max_length=255, unique=True)),
+                ("is_published", models.BooleanField(default=False)),
+                ("description", models.TextField(default="")),
+                ("promo_content", models.TextField(blank=True, default="")),
+                (
+                    "cover",
+                    models.ImageField(blank=True, null=True, upload_to="covers/"),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'courses_course',
+                "db_table": "courses_course",
             },
         ),
         migrations.CreateModel(
-            name='Enrollment',
+            name="Enrollment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enrolled_at', models.DateTimeField(auto_now_add=True)),
-                ('last_active_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enrolled_at", models.DateTimeField(auto_now_add=True)),
+                ("last_active_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'db_table': 'courses_enrollment',
+                "db_table": "courses_enrollment",
             },
         ),
         migrations.CreateModel(
-            name='Module',
+            name="Module",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('order', models.PositiveSmallIntegerField(default=0)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("order", models.PositiveSmallIntegerField(default=0)),
             ],
             options={
-                'db_table': 'courses_module',
-                'ordering': ['order'],
+                "db_table": "courses_module",
+                "ordering": ["order"],
             },
         ),
     ]

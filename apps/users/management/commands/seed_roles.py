@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from apps.users.models import Role
 
+
 class Command(BaseCommand):
     help = "Create default roles"
 
@@ -13,5 +14,5 @@ class Command(BaseCommand):
                 self.stdout.write(f"Created role: {role_name}")
             else:
                 self.stdout.write(f"Role already exists: {role_name}")
-        
+
         self.stdout.write(self.style.SUCCESS("Done creating roles."))

@@ -4,40 +4,37 @@ import sys
 import os
 
 ENVIRONMENT = config("ENVIRONMENT", default="development")
+
+
 def get_secret(name, env_var, default=None, cast=str):
     secret_path = f"/run/secrets/{name}"
     if os.path.exists(secret_path):
         with open(secret_path) as f:
             return f.read().strip()
-    
+
     return config(env_var, default=default, cast=cast)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = get_secret(
-    'django_secret_jey',
-    'SECRET_KEY'
-)
-DEBUG = get_secret(
-    'debug', 
-    'DEBUG',
-    default=False,
-    cast=bool
-)
+SECRET_KEY = get_secret("django_secret_jey", "SECRET_KEY")
+DEBUG = get_secret("debug", "DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = get_secret(
+    "allowed_hosts", "ALLOWED_HOSTS", default="localhost,127.0.0.1"
+).split(",")
 
 
 INSTALLED_APPS = [
     "jazzmin",
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django_extensions',
-    'tinymce',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_extensions",
+    "tinymce",
     "apps.users",
     "apps.courses",
     "apps.lessons",
@@ -47,76 +44,76 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
         # === templates are at same level as base app
-        'DIRS': [BASE_DIR / "templates"],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+WSGI_APPLICATION = "config.wsgi.application"
 
 # SECURITY WARNING: use postgres in production, store data in env
 if ENVIRONMENT == "production":
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'HOST': get_secret('postgres_host', 'POSTGRES_HOST'),
-            'NAME': get_secret('postgres_name', 'POSTGRES_DB'),
-            'USER': get_secret('postgres_user', 'POSTGRES_USER'),
-            'PASSWORD': get_secret('db_password', 'POSTGRES_PASSWORD'),
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "HOST": get_secret("postgres_host", "POSTGRES_HOST"),
+            "NAME": get_secret("postgres_name", "POSTGRES_DB"),
+            "USER": get_secret("postgres_user", "POSTGRES_USER"),
+            "PASSWORD": get_secret("db_password", "POSTGRES_PASSWORD"),
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -124,7 +121,7 @@ USE_TZ = True
 
 
 # === Set static and media folders ===
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
@@ -137,45 +134,41 @@ AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ["apps.users.backends.EmailBackend"]
 
 
-# TODO: change this
-# if ENVIRONMENT == "production":
-#     CACHES = {
-#         "default":
-#         {
-#             "BACKEND": "django_redis.cache.RedisCache",
-#             "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
-#             "OPTIONS": {
-#                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             }
-#         }
-#     }
-CACHES = {
-    "default":
-    {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": get_secret("redis_url", "REDIS_URL", default="redis://redis:6379/0"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+if ENVIRONMENT == "production":
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": get_secret(
+                "redis_url", "REDIS_URL", default="redis://redis:6379/0"
+            ),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
         }
     }
-}
 
 
-EMAIL_HOST = get_secret('email_host', 'EMAIL_HOST', default='localhost')
+EMAIL_HOST = get_secret("email_host", "EMAIL_HOST", default="localhost")
 
 LOGIN_URL = "users:login"
 
 
 # === Needed for debugtoolbar
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
 
 
 # === Debug toolbar does not start in tests
 TESTING = "test" in sys.argv or "PYTEST_VERSION" in os.environ
 
-if not TESTING and ENVIRONMENT == "development":
+if not TESTING and DEBUG:
+    import socket
+
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
+    if ENVIRONMENT == "production":
+        hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+        INTERNAL_IPS += [ip[:-1] + "1" for ip in ips]
+
     INSTALLED_APPS = [
         *INSTALLED_APPS,
         "debug_toolbar",
@@ -191,7 +184,7 @@ TINYMCE_DEFAULT_CONFIG = {
     "menubar": False,
     "plugins": "lists link image media code codesample",
     "toolbar": "undo redo | formatselect | bold italic | "
-               "bullist numlist | link image media codesample | code",
+    "bullist numlist | link image media codesample | code",
     "images_upload_url": "/tinymce/upload/",
     "automatic_uploads": True,
     "file_picker_types": "image media",
@@ -203,7 +196,7 @@ JAZZMIN_SETTINGS = {
     "site_header": "EduPlatform",
     "site_brand": "EduPlatform",
     "show_ui_builder": False,
-    "custom_css": "css/admin_custom.css"
+    "custom_css": "css/admin_custom.css",
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -234,6 +227,6 @@ JAZZMIN_UI_TWEAKS = {
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
-        "success": "btn-success"
-    }
+        "success": "btn-success",
+    },
 }
